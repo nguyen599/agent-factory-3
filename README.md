@@ -53,7 +53,7 @@ Agent Factory 3 stands on these projects:
 - [trl](https://github.com/huggingface/trl) — RL training reference
 - [slime](https://github.com/THUDM/slime) — async RL pipeline design
 - [verl](https://github.com/volcengine/verl) — RL framework reference
-- DFlash — speculative decoding (integrated into our sglang fork)
+- [DFlash](https://github.com/z-lab/dflash) — speculative decoding
 
 ## License
 

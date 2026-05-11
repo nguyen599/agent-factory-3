@@ -53,7 +53,7 @@ Agent Factory 3 は以下のプロジェクトの上に成り立っています:
 - [trl](https://github.com/huggingface/trl) — RL training の参考
 - [slime](https://github.com/THUDM/slime) — 非同期 RL パイプライン設計の参考
 - [verl](https://github.com/volcengine/verl) — RL framework の参考
-- DFlash — 投機的デコーディング（sglang fork に統合）
+- [DFlash](https://github.com/z-lab/dflash) — 投機的デコーディング
 
 ## License
 

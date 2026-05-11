@@ -53,7 +53,7 @@ Agent Factory 3 站在這些 project 上：
 - [trl](https://github.com/huggingface/trl) — RL training 參考
 - [slime](https://github.com/THUDM/slime) — async RL pipeline 設計參考
 - [verl](https://github.com/volcengine/verl) — RL framework 參考
-- DFlash — 投機解碼演算法（整合進我們的 sglang fork）
+- [DFlash](https://github.com/z-lab/dflash) — 投機解碼演算法
 
 ## License
 
