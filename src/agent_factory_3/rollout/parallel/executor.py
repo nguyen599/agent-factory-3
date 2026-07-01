@@ -14,6 +14,7 @@ from openai_harmony import Conversation, Role
 
 from ..config import LoopConfig
 from ..llm_backend import SGLangBackend, VLLMBackend
+from ..chat_template_runner import ChatTemplateRunner
 from ..conversation_builder import ConversationBuilder
 from ..mcp_executor import McpExecutor
 from ..runner import UnifiedReactRunner
@@ -127,31 +128,52 @@ async def execute_rollout(
 
             try:
                 # 5. Create runner and execute
-                runner = UnifiedReactRunner(
-                    config=config.loop_config,
-                    llm_backend=llm_backend,
-                    mcp_executor=mcp_executor,
-                )
-
-                initial_tokens = None
-                if base_conversation is not None:
-                    conversation = builder.append_user_message(base_conversation, config.user_prompt)
-                    if base_tokens is not None:
-                        user_msg = conversation.messages[-1]
-                        user_msg_tokens = runner.encoding.render_conversation_for_completion(
-                            Conversation.from_messages([user_msg]), Role.ASSISTANT,
+                if config.loop_config.prompt_format == "chat_template":
+                    if tool_configs:
+                        raise NotImplementedError(
+                            "prompt_format='chat_template' currently supports single-turn text rollouts only, "
+                            "not MCP/tool execution."
                         )
-                        initial_tokens = list(base_tokens) + user_msg_tokens
+                    if base_conversation is not None or base_tokens is not None:
+                        raise NotImplementedError(
+                            "prompt_format='chat_template' does not support base_conversation/base_tokens yet."
+                        )
+                    runner = ChatTemplateRunner(
+                        config=config.loop_config,
+                        llm_backend=llm_backend,
+                    )
+                    result = await runner.run(
+                        config.user_prompt,
+                        stop_event=stop_event,
+                        record_config=config.record_config,
+                        rollout_id=rid,
+                    )
                 else:
-                    conversation = builder.build(config.user_prompt, tool_configs)
+                    runner = UnifiedReactRunner(
+                        config=config.loop_config,
+                        llm_backend=llm_backend,
+                        mcp_executor=mcp_executor,
+                    )
 
-                result = await runner.run(
-                    conversation,
-                    initial_tokens=initial_tokens,
-                    stop_event=stop_event,
-                    record_config=config.record_config,
-                    rollout_id=rid,
-                )
+                    initial_tokens = None
+                    if base_conversation is not None:
+                        conversation = builder.append_user_message(base_conversation, config.user_prompt)
+                        if base_tokens is not None:
+                            user_msg = conversation.messages[-1]
+                            user_msg_tokens = runner.encoding.render_conversation_for_completion(
+                                Conversation.from_messages([user_msg]), Role.ASSISTANT,
+                            )
+                            initial_tokens = list(base_tokens) + user_msg_tokens
+                    else:
+                        conversation = builder.build(config.user_prompt, tool_configs)
+
+                    result = await runner.run(
+                        conversation,
+                        initial_tokens=initial_tokens,
+                        stop_event=stop_event,
+                        record_config=config.record_config,
+                        rollout_id=rid,
+                    )
 
                 # 6. Build result (save before stack cleanup)
                 _mcp_debug(rid, f"rollout_done elapsed={time.time() - start_time:.1f}s")

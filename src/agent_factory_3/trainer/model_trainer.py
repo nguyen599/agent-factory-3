@@ -31,6 +31,7 @@ from transformers import (
     AutoModelForSeq2SeqLM,
     AutoModelForTextToWaveform,
     AutoProcessor,
+    AutoTokenizer,
 )
 from transformers.optimization import get_scheduler
 from trl.models.utils import _ForwardRedirection
@@ -263,7 +264,21 @@ class ModelTrainer(AccelerateRPCMixin):
         return model
 
     def _load_processing_class(self):
-        return AutoProcessor.from_pretrained(pretrained_model_name_or_path=self.config.model_id)
+        try:
+            return AutoProcessor.from_pretrained(pretrained_model_name_or_path=self.config.model_id)
+        except Exception as exc:
+            if self.accelerator.is_main_process:
+                logger.warning(
+                    f"AutoProcessor load failed for {self.config.model_id}; "
+                    f"falling back to AutoTokenizer: {exc}"
+                )
+            tokenizer = AutoTokenizer.from_pretrained(
+                pretrained_model_name_or_path=self.config.model_id,
+                trust_remote_code=True,
+            )
+            if tokenizer.pad_token_id is None and tokenizer.eos_token_id is not None:
+                tokenizer.pad_token = tokenizer.eos_token
+            return tokenizer
 
     def _setup_optimizer(self, optimizer) -> tuple:
         if isinstance(optimizer, tuple):

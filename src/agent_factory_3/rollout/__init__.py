@@ -33,6 +33,7 @@ from .conversation_builder import ConversationBuilder
 
 # Runner
 from .runner import UnifiedReactRunner, CompletionResult
+from .chat_template_runner import ChatTemplateRunner
 
 # Parallel execution
 from .parallel import RolloutConfig, RolloutResult, execute_rollout
@@ -66,6 +67,7 @@ __all__ = [
     # Runner
     "UnifiedReactRunner",
     "CompletionResult",
+    "ChatTemplateRunner",
     # Parallel
     "RolloutConfig",
     "RolloutResult",

@@ -1,6 +1,6 @@
 """Configuration classes for the rollout system."""
 
-from typing import Dict, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -133,6 +133,15 @@ class LoopConfig(BaseModel):
     # Backend 選擇
     # vllm path is preserved in code but not currently supported (validator raises).
     backend: Literal["vllm", "sglang"] = "sglang"
+
+    # Prompt/rendering format.
+    # - harmony: GPT-OSS/OpenAI Harmony ReAct format.
+    # - chat_template: generic HF chat-template single-turn format, used by OLMo3.
+    prompt_format: Literal["harmony", "chat_template"] = "harmony"
+    tokenizer_name_or_path: Optional[str] = None
+    chat_template_system_prompt: Optional[str] = None
+    chat_template_add_generation_prompt: bool = True
+    stop_token_ids: Optional[List[int]] = None
 
     # Model name（vLLM 的 OpenAI API 需要，sglang 不需要）
     model_name: Optional[str] = None
